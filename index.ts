@@ -59,8 +59,8 @@ async function withLogging() {
         }
       }
 
-      if( new Date().getTime() - vaultResults.lastUpdated < 86400000) {
-        console.log('HAS BEEN RAN WITHIN 24 HOURS, SKIPPING: ', vaultId);
+      if( new Date().getTime() - vaultResults.lastUpdated < 28800000) {
+        console.log('HAS BEEN RAN WITHIN 8 HOURS, SKIPPING: ', vaultId);
         continue;
       }
 
@@ -181,6 +181,7 @@ async function withLogging() {
           }
         }
       };
+      newSolvent = newSolvent.sort((a, b) => a - b);
       console.log("liquidated: ", JSON.stringify(newLiquidated), "solvent: ", JSON.stringify(newSolvent), "skipped: ", JSON.stringify(newSkipped));
       const newResults = {
         lastUpdated: new Date().getTime(),
