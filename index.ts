@@ -5,6 +5,8 @@ import { config } from 'dotenv';
 
 config();
 
+const encodeJsonToB64 = (toEncode:any) : string => Buffer.from(JSON.stringify(toEncode), 'utf8').toString('base64');
+
 const client = new SecretNetworkClient({
   url: process.env.LCD_URL_0!,
   chainId: 'secret-4',
@@ -145,7 +147,34 @@ async function withLogging() {
           if(executeResponse.rawLog?.includes("out of gas")){
             console.log('LIQUIDATION ATTEMPT OOG');
             await new Promise((resolve) => setTimeout(resolve, 500));
-            const liquidate = await client.tx.broadcast([new MsgExecuteContract({ 
+            const liquidate = await client.tx.broadcast([
+              new MsgExecuteContract({ 
+                sender: client.address, 
+                contract_address: process.env.MONEY_MARKET_ADDRESS!,
+                code_hash: process.env.MONEY_MARKET_CODE_HASH!,
+                msg: { 
+                  borrow:{
+                    token: process.env.SILK_TOKEN_ADDRESS, 
+                    amount: '1000000000', 
+                  } 
+                }, 
+                sent_funds: [],
+              }),
+              new MsgExecuteContract({ 
+                sender: client.address, 
+                contract_address: process.env.SILK_TOKEN_ADDRESS!,
+                code_hash: process.env.SILK_TOKEN_CODE_HASH!,
+                msg: {
+                  send: {
+                    recipient: process.env.STABILITY_POOL_ADDRESS,
+                    recipient_code_hash: process.env.STABILITY_POOL_CODE_HASH,
+                    amount: '1000000000', 
+                    msg: encodeJsonToB64({deposit_silk:{}})
+                  }
+                }, 
+                sent_funds: [],
+              }),
+              new MsgExecuteContract({ 
                 sender: client.address, 
                 contract_address: contract.address, 
                 msg: { liquidate: { vault_id: String(vaultId), position_id: String(positionId) } }, 
@@ -153,19 +182,21 @@ async function withLogging() {
                 code_hash: contract.code_hash,
               })],
               {
-                gasLimit: 1500000,
+                gasLimit: 2500000,
                 feeDenom: "uscrt",
               }
             );
             console.log(liquidate.transactionHash);
             if(liquidate?.arrayLog || liquidate?.jsonLog) {
-              console.log(JSON.stringify(liquidate.arrayLog));
-              console.log(JSON.stringify(liquidate.jsonLog));
+              console.log(JSON.stringify(liquidate.jsonLog, null, 2));
               newLiquidated.push(positionId);
             }
             else {
               txHash = liquidate.transactionHash;
               throw new Error(liquidate.rawLog);
+            }
+            if(liquidate.code === 0) {
+              await new Promise((resolve) => setTimeout(resolve, 80000));
             }
           }
           retry = 0;
