@@ -9,7 +9,7 @@ const client = new SecretNetworkClient({
   url: process.env.LCD_URL_0!,
   chainId: 'secret-4',
   wallet: new Wallet(process.env.MNEMONIC!),
-  walletAddress: "secret1wuz2jpqzrtcerjqa5rtc3u5f4kahtfd0yt0pta",
+  walletAddress: process.env.WALLET_ADDRESS!,
   encryptionSeed: new Uint8Array(32),
 });
 
@@ -59,7 +59,7 @@ async function withLogging() {
         }
       }
 
-      if( new Date().getTime() - vaultResults.lastUpdated < 28800000) {
+      if( new Date().getTime() - vaultResults.lastUpdated < 2880000) {
         console.log('HAS BEEN RAN WITHIN 8 HOURS, SKIPPING: ', vaultId);
         continue;
       }
