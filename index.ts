@@ -61,7 +61,7 @@ async function withLogging() {
         }
       }
 
-      if( new Date().getTime() - vaultResults.lastUpdated < 2880000) {
+      if( new Date().getTime() - vaultResults.lastUpdated < 28800000) {
         console.log('HAS BEEN RAN WITHIN 8 HOURS, SKIPPING: ', vaultId);
         continue;
       }
@@ -148,7 +148,7 @@ async function withLogging() {
             console.log('LIQUIDATION ATTEMPT OOG');
             await new Promise((resolve) => setTimeout(resolve, 500));
             const liquidate = await client.tx.broadcast([
-              new MsgExecuteContract({ 
+              /*new MsgExecuteContract({ 
                 sender: client.address, 
                 contract_address: process.env.MONEY_MARKET_ADDRESS!,
                 code_hash: process.env.MONEY_MARKET_CODE_HASH!,
@@ -173,7 +173,7 @@ async function withLogging() {
                   }
                 }, 
                 sent_funds: [],
-              }),
+              }),*/
               new MsgExecuteContract({ 
                 sender: client.address, 
                 contract_address: contract.address, 
@@ -196,7 +196,7 @@ async function withLogging() {
               throw new Error(liquidate.rawLog);
             }
             if(liquidate.code === 0) {
-              await new Promise((resolve) => setTimeout(resolve, 80000));
+              await new Promise((resolve) => setTimeout(resolve, 10000));
             }
           }
           retry = 0;

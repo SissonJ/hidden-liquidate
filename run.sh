@@ -1,3 +1,3 @@
 #!/bin/bash
 
-ts-node --esm ./index.ts
+yarn tsx ./index.ts
